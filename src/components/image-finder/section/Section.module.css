@@ -1,0 +1,11 @@
+.section {
+    margin-left: 10px;
+    margin-right: 10px;
+    text-align: center;
+}
+
+.container {
+    border-radius: 10px;
+    overflow: hidden;
+    padding: 20px;
+}
