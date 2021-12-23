@@ -1,43 +1,40 @@
 import PropTypes from 'prop-types';
-import { PureComponent } from 'react';
 import { createPortal } from 'react-dom';
+import { useEffect } from 'react';
 import s from './Modal.module.css';
 
 // import { ReactComponent as closeIcon } from '../icons/closeIcon.svg';
 
 const modalRoot = document.querySelector('#modal-root');
 
-class Modal extends PureComponent {
-  componentDidMount() {
-    window.addEventListener('keydown', this.handleKeyDown);
-  }
+function Modal({ src, alt, onClose }) {
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  });
 
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.handleKeyDown);
-  }
-
-  handleKeyDown = e => {
+  const handleKeyDown = e => {
     if (e.code === 'Escape') {
-      this.props.onClose();
+      onClose();
     }
   };
 
-  handleBackdropClick = e => {
+  const handleBackdropClick = e => {
     if (e.currentTarget === e.target) {
-      this.props.onClose();
+      onClose();
     }
   };
 
-  render() {
-    return createPortal(
-      <div className={s.overlay} onClick={this.handleBackdropClick}>
-        <div className={s.modal}>
-          <img src={this.props.src} alt={this.props.alt} />
-        </div>
-      </div>,
-      modalRoot,
-    );
-  }
+  return createPortal(
+    <div className={s.overlay} onClick={handleBackdropClick}>
+      <div className={s.modal}>
+        <img src={src} alt={alt} />
+      </div>
+    </div>,
+    modalRoot,
+  );
 }
 
 Modal.propTypes = {

@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState } from 'react';
 
 // importComponent
 import Section from './components/image-finder/section/Section';
@@ -8,44 +8,35 @@ import Modal from './components/image-finder/modal/Modal';
 
 // importScripts
 
-class App extends Component {
-  state = {
-    searchName: '',
-    showModal: false,
-    option: {},
+function App() {
+  const [searchName, setSearchName] = useState('');
+  const [modal, setModal] = useState(false);
+  const [option, setOption] = useState({});
+
+  const toggleModal = (src, alt) => {
+    setModal(!modal);
+    setOption({ imageSrc: src, imageAlt: alt });
   };
 
-  toggleModal = (src, alt) => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-      option: { imageSrc: src, imageAlt: alt },
-    }));
+  const handleFormSubmit = searchName => {
+    setSearchName(searchName);
   };
 
-  handleFormSubmit = searchName => {
-    this.setState({ searchName });
-  };
-
-  render() {
-    return (
-      <>
-        <Searchbar onSubmit={this.handleFormSubmit} />
-        <Section>
-          <ImageGallery
-            searchName={this.state.searchName}
-            onClick={this.toggleModal}
-          />
-        </Section>
-        {this.state.showModal && (
-          <Modal
-            src={this.state.option.imageSrc}
-            alt={this.state.option.imageAlt}
-            onClose={this.toggleModal}
-          />
-        )}
-      </>
-    );
-  }
+  return (
+    <>
+      <Searchbar onSubmit={handleFormSubmit} />
+      <Section>
+        <ImageGallery searchName={searchName} onClick={toggleModal} />
+      </Section>
+      {modal && (
+        <Modal
+          src={option.imageSrc}
+          alt={option.imageAlt}
+          onClose={toggleModal}
+        />
+      )}
+    </>
+  );
 }
 
 export default App;

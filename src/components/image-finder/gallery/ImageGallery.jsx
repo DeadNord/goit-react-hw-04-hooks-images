@@ -1,79 +1,70 @@
 import ImageGalleryItem from './ImageGalleryItem';
-import React, { PureComponent } from 'react';
+import { useState, useEffect } from 'react';
+import React from 'react';
 import Button from '../button/Button';
 import LoaderCom from '../loader/Loader';
-import fetchApi from '../../services/services'
+import fetchApi from '../../services/services';
 
 import s from './ImageGallery.module.css';
 
+function ImageGallery({ searchName, onClick }) {
+  const [images, setImages] = useState([]);
+  const [status, setStatus] = useState('');
+  const [page, setPage] = useState(1);
+  const [myRefs] = useState(React.createRef());
+  const [name, setName] = useState('');
 
-class ImageGallery extends PureComponent {
-    state = {
-      image: [],
-      status: '',
-      page: 1,
-      myRef: React.createRef(),
-    };
-  
-    componentDidUpdate(prevProps, prevState) {
-      if (
-        prevProps.searchName !== this.props.searchName ||
-        prevState.page !== this.state.page
-      ) {
-          this.setState({ image: [], status: 'load' });
-        fetchApi(this.props.searchName, this.state.page)
-          .then(image => {
-            image.hits[0] = { ...image.hits[0], myRef: this.state.myRef  };
-            this.setState({
-              image: [...this.state.image, ...image.hits],
-              status: 'done',
-            });
-            this.scroll(this.state.myRef);
-          })
-      }
+  useEffect(() => {
+    if (!searchName) {
+      return;
     }
+    if (searchName !== name) {
+      setPage(1);
+      setImages([]);
+    }
+    setStatus('load');
+    fetchApi(searchName, page).then(image => {
+      image.hits[0] = { ...image.hits[0], myRef: myRefs };
+      setName(searchName);
+      setImages([...images, ...image.hits]);
+      scroll(myRefs);
+      setStatus('done');
+    });
+  }, [name, searchName, page]);
 
-    nextPage = () => {
-      this.setState({
-        page: this.state.page + 1,
-      });
-    };
-  
-    scroll = elem => {
-      elem.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'end',
-      });
-    };
-    render() {
+  const nextPage = () => {
+    setPage(state => state + 1);
+  };
+
+  function scroll(elem) {
+    elem.current.scrollIntoView({
+      behavior: 'smooth',
+      block: 'end',
+    });
+  }
+
   return (
-<>
-    <ul className={s.gallery}>
-        {this.state.image.map(img => (
-              <ImageGalleryItem
-                key={img.id}
-                onClick={this.props.onClick}
-                srs={img.webformatURL}
-                alt={img.tags}
-                largeImageURL={img.largeImageURL}
-                myRef={img.myRef}
-              />
-            ))}
-             {this.state.status === 'load' && (
-        <LoaderCom/>
-        )}
-</ul>
-{this.state.status === 'done' &&
-<div className={s.button}>
-<Button onClick={this.nextPage} />
-</div>
-    }
-
-</>
-
+    <>
+      <ul className={s.gallery}>
+        {images.map(img => (
+          <ImageGalleryItem
+            key={img.id}
+            onClick={onClick}
+            srs={img.webformatURL}
+            alt={img.tags}
+            largeImageURL={img.largeImageURL}
+            myRef={img.myRef}
+          />
+        ))}
+        {status === 'load' && <LoaderCom />}
+      </ul>
+      {status === 'done' && (
+        <div className={s.button}>
+          <Button onClick={nextPage} />
+        </div>
+      )}
+    </>
   );
-    }
-};
-
+}
 
 export default ImageGallery;
